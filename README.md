@@ -18,16 +18,16 @@ This Python script automates the process of monitoring and sending emails with E
   - `email`
 
 ## Installation
-To install the required libraries, use the following command:
-```bash
-pip install openpyxl
-
-Usage
-Ensure you have an Excel file named Monitoring-SC.xlsx in the appropriate folder.
-Run the script:
-python monitoring_script.py
-
-Enter your email login details when prompted.
+  To install the required libraries, use the following command:
+  ```bash
+  pip install openpyxl
+  
+  Usage
+  Ensure you have an Excel file named Monitoring-SC.xlsx in the appropriate folder.
+  Run the script:
+  python monitoring_script.py
+  
+  Enter your email login details when prompted.
 
 ## Code Structure
 Importing Libraries: Importing necessary libraries for working with file paths, Excel files, and emails.
