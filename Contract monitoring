@@ -9,7 +9,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Alignment
 from openpyxl.styles import Font, PatternFill
 
-
+#Files part
 
 #date
 today = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -100,9 +100,82 @@ for client in unique_clients:
       new_workbook.save(os.path.join(folder_path2, output_file_name_sanitize))
       print(f"File saved for client {client} as {output_file_name_sanitize}")
     
-print("Zakończono podział plików.")
+print("File splitting is complete.")
+
+#Email sending part
+
+import smtplib
+import getpass
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+import os
+from openpyxl import load_workbook
 
 
+#creating client-mail assignment
+file_to_email = {}
+file_to_email_xlsx = {}
+for row in ws.iter_rows(min_row=2, values_only=True):
+    key_pl = row[0]
+    key2 = ".xlsx"
+    value = row[9]
+    if key_pl is not None and value is not None:
+        key = sanitize_filename(key_pl)
+        file_to_email[key] = value
+        file_to_email_xlsx[key+key2] = value
+    elif key_pl is not None and value is None:
+        print("There is no email to send")
+
+#login details
+email = input("Enter your email login: ")
+password = getpass.getpass("Password: ")
+email2 = input("Enter the @ address from which the email is to be sent: ")
+email3 = "kmchojnacki17@gmail.com"
+
+#connecting to email
+try:
+    # Connect to SMTP server
+    server = smtplib.SMTP('smtp.office365.com', 587)
+    server.starttls()
+    server.login(email, password)
+    print("Login was successful.")
+except smtplib.SMTPAuthenticationError:
+    print("Login failed. Please check your login details.")
+
+#email
+for filename in os.listdir(folder_path2):
+    if filename.endswith(".xlsx") and filename in file_to_email_xlsx:
+        try:
+            # create an email
+            msg = MIMEMultipart()
+            msg['From'] = email
+            msg['To'] = file_to_email_xlsx[filename]
+            msg['Cc'] = ""
+            filename_without_extension = filename.split(".xlsx")[0]
+            msg['Subject'] = f"Monitoring the implementation of Permanent Contracts {filename_without_extension}"
+            body = f"Hello,\nw attached monitoring for {filename_without_extension}.The monitoring also includes placed orders.\n\nBest Regards\nOffice of Risk and Market Analysis"
+            msg.attach(MIMEText(body, 'plain'))
+
+            # attach files
+            with open(os.path.join(folder_path2, filename), 'rb') as f:
+                part = MIMEBase('application', 'octet-stream')
+                part.set_payload(f.read())
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment; filename="%s"' % filename)
+            msg.attach(part)
+
+            # Send e-mail
+            server.sendmail(email, [file_to_email_xlsx[filename]], msg.as_string())
+            print(f"Sent successfully {filename} do {file_to_email_xlsx[filename]}")
+        except smtplib.SMTPRecipientsRefused:
+            print(f"Error while sending {filename} do {file_to_email_xlsx[filename]}")
+    else:
+        print(f"No recipient found for {filename}")
+
+# Close SMTP connection
+server.quit()
 
 
 
